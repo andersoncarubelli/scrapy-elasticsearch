@@ -57,7 +57,7 @@ Available parameters (in settings.py)
   }
 
   ELASTICSEARCH_INDEX_MAPPING - optional field, file location of mapping definition (should be a json file)
-
+  ELASTICSEARCH_INDEX_ALIAS - optional field, possibility to create an alias for index
 
 Here is an example app (dirbot https://github.com/jayzeng/dirbot) in case you are still confused.
 
@@ -67,6 +67,7 @@ See requirements.txt
 
 Changelog
 =========
+* 0.11: Added suport for create an alias for index
 * 0.10: Added support for create index with mapping definition
 * 0.9: Accept custom CA cert to connect to es clusters
 * 0.8: Added support for NTLM authentification
