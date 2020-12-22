@@ -160,11 +160,25 @@ class ElasticSearchPipeline(object):
             return item
 
     def close_spider(self, spider):
+        if self.settings['ELASTICSEARCH_INDEX_ALIAS']:
+            index_name = self.settings.get('ELASTICSEARCH_INDEX', None)
+            index_suffix_format = self.settings.get(
+                'ELASTICSEARCH_INDEX_DATE_FORMAT', None)
+
+            index_new_name = self.create_index_name(
+                index_name, index_suffix_format)
+            alias_name = self.settings['ELASTICSEARCH_INDEX_ALIAS']
+            self.es.indices.put_alias(index=index_new_name, name=alias_name)
+
         if len(self.items_buffer):
             self.send_items()
 
     def create_index_with_mapping(self, ext):
-        index_name = self.create_index_name(ext)
+        index_name = ext.settings.get('ELASTICSEARCH_INDEX', None)
+        index_suffix_format = ext.settings.get('ELASTICSEARCH_INDEX_DATE_FORMAT', None)
+
+        index_new_name = self.create_index_name(self,
+                                                index_name, index_suffix_format)
         mapping_file = ext.settings['ELASTICSEARCH_INDEX_MAPPING']
 
         if ext.es.indices.exists(index_name):
@@ -173,12 +187,9 @@ class ElasticSearchPipeline(object):
             logging.debug("will create index with mapping definition")
             file = open(mapping_file, "r")
             mapping_data = json.loads(file.read())
-            ext.es.indices.create(
-                index=index_name, ignore=400, body=mapping_data)
+            ext.es.indices.create(index=index_new_name, ignore=400, body=mapping_data)
 
-    def create_index_name(ext):
-        index_name = ext.settings['ELASTICSEARCH_INDEX']
-        index_suffix_format = ext.settings['ELASTICSEARCH_INDEX_DATE_FORMAT']
+    def create_index_name(self, index_name, index_suffix_format):
 
         if index_suffix_format:
             dt = datetime.now()
